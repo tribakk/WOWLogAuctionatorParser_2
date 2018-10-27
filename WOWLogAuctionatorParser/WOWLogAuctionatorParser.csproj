@@ -52,7 +52,7 @@
     <Compile Include="Core\CAuctionAnalyzer.cs" />
     <Compile Include="Core\CFactory.cs" />
     <Compile Include="Core\CSmartArray.cs" />
-    <Compile Include="Core\ExcelHelper.cs" />
+    <Compile Include="Core\Utils.cs" />
     <Compile Include="Core\ProductTag.cs" />
     <Compile Include="Core\ProductTagString.cs" />
     <Compile Include="Form1.cs">

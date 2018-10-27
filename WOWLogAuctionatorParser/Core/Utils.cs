@@ -14,6 +14,13 @@ namespace WOWLogAuctionatorParser.Core
     {
         public static int FindNextRow(string[] string_array, string text, int start_row)
         {
+            int count = string_array.Length;
+            for (;start_row < count; start_row ++)
+            {
+                string str = string_array[start_row];
+                if (str.Contains(text))
+                    return start_row;
+            }
             return 0;
         }
 
