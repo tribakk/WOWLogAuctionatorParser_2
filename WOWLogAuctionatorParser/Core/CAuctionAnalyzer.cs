@@ -12,15 +12,12 @@ namespace WOWLogAuctionatorParser.Core
         private double m_Price;
         private int m_StackSize;
 
-        void ClearString(ref string inputString, string deleteString)
-        {
-            inputString = inputString.Replace(deleteString, "");
-            inputString = inputString.Replace(",", "");
-        }
+        
         public int Parse(string[] s, int startPos)
         {
+            startPos = Utils.FindNextRow(s, "buyoutPrice", startPos);
             string s1 = s[startPos];
-            ClearString(ref s1, "				[\"buyoutPrice\"] = ");
+            Utils.ClearStringText(ref s1,"buyoutPrice");
             m_BuyOutPrice = Convert.ToDouble(s1);
             m_BuyOutPrice /= (100 * 100);
 
@@ -34,7 +31,7 @@ namespace WOWLogAuctionatorParser.Core
                     System.Diagnostics.Debug.Assert(false);
             }
             s1 = s[startPos];
-            ClearString(ref s1, "				[\"stackSize\"] = ");
+            Utils.ClearStringText(ref s1, "stackSize");
             m_StackSize = Convert.ToInt32(s1);
 
             m_Price = m_BuyOutPrice / m_StackSize;
@@ -59,6 +56,7 @@ namespace WOWLogAuctionatorParser.Core
     {
         CAllProductSpisok spisok = new CAllProductSpisok();
         string m_ItemName;
+        ProductTag m_Tag;
         List<CAuctionLot> m_Lots = new List<CAuctionLot>();
 
         public string GetName()
@@ -80,40 +78,31 @@ namespace WOWLogAuctionatorParser.Core
                 }
             }
         }
-        public int Parse(string[] s, int startPos)
+        public int Parse(string[] s, int pos)
         {
             //"AnalyzeSortData - self - start",
-            for (;;startPos++)
-            {
-                if (s[startPos].Contains("[\"itemName\"]"))
-                {
-                    string s1 = s[startPos];
-                    s1 = s1.Replace("		[\"itemName\"] = \"", "");
-                    s1 = s1.Replace("\",", "");
-                    m_ItemName = s1;
-                    spisok.GetTag(m_ItemName);
-                    break;
-                }
-            }
 
-            for (;;startPos++)
-            {
-                if (s[startPos].Contains("[\"scanData\"] = {"))
-                    break;
-            }
-            startPos += 2;
+            pos = Utils.FindNextRow(s, "itemName", pos);
+            string s1 = s[pos];
+            Utils.ClearStringText(ref s1, "itemName");
+            m_ItemName = s1;
+            m_Tag = spisok.GetTag(m_ItemName);
+
+            pos = Utils.FindNextRow(s, "scanData", pos);
+
             for (;;)
             {
-                string str = s[startPos - 1];
-                if (str.Contains("}"))
+                int pos_end = Utils.FindNextRow(s, "}", pos);
+                int pos_next = Utils.FindNextRow(s, "buyoutPrice", pos);
+                if (pos_next > pos_end)
                     break;
                 CAuctionLot lot = new CAuctionLot();
-                startPos = lot.Parse(s, startPos);
+                pos = lot.Parse(s, pos);
+                pos = Utils.FindNextRow(s, "}", pos) + 1;
                 if (lot.GetBoyOutPrice() != 0.0) //без цены выкупа
                     m_Lots.Add(lot);
-                startPos += 3;
             }
-            return startPos;
+            return pos;
         }
         public double GetCost(int size)
         {
